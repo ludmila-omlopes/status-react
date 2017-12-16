@@ -2,13 +2,13 @@
   (:require [reagent.core :as r]
             [status-im.ui.components.animation :as animation]
             [status-im.ui.components.text-input-with-label.animation :refer [animate-label
-                                                                          text-input-on-focus
-                                                                          text-input-on-blur]]
+                                                                             text-input-on-focus
+                                                                             text-input-on-blur]]
             [status-im.ui.components.react :refer [view
-                                                text
-                                                animated-text
-                                                animated-view
-                                                text-input]]
+                                                   text
+                                                   animated-text
+                                                   animated-view
+                                                   text-input]]
             [status-im.ui.components.text-input-with-label.styles :as st]
             [clojure.string :as str]))
 

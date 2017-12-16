@@ -1,14 +1,14 @@
 (ns status-im.chat.styles.message.message
   (:require-macros [status-im.utils.styles :refer [defstyle defnstyle]])
   (:require [status-im.ui.components.styles :refer [color-white
-                                                 color-black
-                                                 color-blue
-                                                 color-light-blue
-                                                 selected-message-color
-                                                 text1-color
-                                                 text2-color
-                                                 color-gray
-                                                 color-gray4]]
+                                                    color-black
+                                                    color-blue
+                                                    color-light-blue
+                                                    selected-message-color
+                                                    text1-color
+                                                    text2-color
+                                                    color-gray
+                                                    color-gray4]]
             [status-im.constants :refer [text-content-type
                                          content-type-command]]))
 
