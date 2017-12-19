@@ -12,7 +12,7 @@
 
 ;; Effects
 (re-frame/reg-fx
- :chat-requests/mask-as-answered
+ :chat-requests/mark-as-answered
  (fn [{:keys [chat-id message-id]}]
    (requests-store/mark-as-answered chat-id message-id)))
 

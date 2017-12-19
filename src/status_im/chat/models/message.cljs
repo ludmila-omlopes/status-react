@@ -105,7 +105,7 @@
   [(re-frame/inject-cofx :random-id)
    (re-frame/inject-cofx :random-id-seq)
    (re-frame/inject-cofx :get-stored-chat)
-   (re-frame/inject-cofx :save-entities)
+   (re-frame/inject-cofx :now)
    re-frame/trim-v])
 
 (defn- prepare-command
@@ -150,7 +150,7 @@
 ;; TODO(alwx): it's actually a prepare-command! handler
 (defn send-command
   [{{:keys [current-public-key network-status] :as db} :db
-    :keys [get-stored-chat random-id-seq]} add-to-chat-id params]
+    :keys [now get-stored-chat random-id-seq]} add-to-chat-id params]
   (let [{{:keys [handler-data
                  command]
           :as   content} :command
@@ -177,12 +177,12 @@
 
       true
       (as-> cofx'
-          (chat-model/upsert-chat (assoc cofx' :get-stored-chat get-stored-chat)
+          (chat-model/upsert-chat (assoc cofx' :get-stored-chat get-stored-chat :now now)
                                   {:chat-id chat-id}))
 
       ;; TODO(alwx): not needed more likely
-      true
-      (chat-model/set-chat-ui-props {:sending-in-progress? false})
+      #_true
+      #_(chat-model/set-chat-ui-props {:sending-in-progress? false})
 
       (:to-message command')
       (assoc :chat-requests/mark-as-answered {:chat-id chat-id
@@ -194,32 +194,30 @@
       (chat-utils/console? chat-id)
       (as-> cofx'
           (let [messages (console-events/console-respond-command-messages params' random-id-seq)]
-            (update cofx' :save-entities conj messages))))))
+            (update cofx' :save-entities into (map #(vector :message %) messages)))))))
 
 ;; TODO(alwx) remove this once send-message events are refactored; also make use of it
 (defn invoke-console-command-handler
-  [cofx [{:keys [chat-id command] :as command-params}]]
-  (let [fx-fn (get console-events/console-commands->fx (-> command :command :name))]
-    (-> (fx-fn cofx command)
-        (send-command chat-id command-params))))
+  [{:keys [db] :as cofx} {:keys [chat-id command] :as command-params}]
+  (let [fx-fn (get console-events/console-commands->fx (-> command :command :name))
+        result (fx-fn cofx command)]
+    (send-command (merge cofx result) chat-id command-params)))
 
 ;; TODO(alwx): unified send for both commands and messages
 (defn process-command
   [{:keys [db random-id] :as cofx} {:keys [command message chat-id] :as params}]
   (let [{:keys [command] :as content} command]
-    (-> {:db db}
+    (-> {:db (chat-model/set-chat-ui-props db {:sending-in-progress? false})}
 
         (as-> cofx'
-            (cond
-              (and (= constants/console-chat-id chat-id)
-                   (console-events/commands-names (:name command)))
-              (invoke-console-command-handler (merge cofx cofx') params)
+          (cond
+            (and (= constants/console-chat-id chat-id)
+                 (console-events/commands-names (:name command)))
+            (invoke-console-command-handler (merge cofx cofx') params)
 
-              (:has-handler command)
-              ;; TODO(alwx): should be restructured
-              (assoc cofx' :dispatch-n [[:invoke-command-handlers! params]])
+            (:has-handler command)
+            ;; TODO(alwx): should be restructured
+            (assoc cofx' :dispatch-n [[:invoke-command-handlers! params]])
 
-              :else
-              (merge cofx' (send-command cofx' chat-id params))))
-
-        (chat-model/set-chat-ui-props {:sending-in-progress? false}))))
+            :else
+            (merge cofx' (send-command (merge cofx cofx') chat-id params)))))))

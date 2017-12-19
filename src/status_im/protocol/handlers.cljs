@@ -176,7 +176,7 @@
  ::participant-left-group-message
  (fn [{:keys [chat-id from message-id timestamp]}]
    (let [left-name (:name (contacts/get-by-id from))
-         message-text (str (or left-name from) " " (label :t/left))]
+         message-text (str (or left-name from) " " (i18n/label :t/left))]
      (-> (system-message message-id timestamp message-text)
          (assoc :chat-id chat-id)
          (messages/save)))))
