@@ -109,6 +109,6 @@
  :console-respond-command
  [(re-frame/inject-cofx :random-id-seq) re-frame/trim-v]
  (fn [{:keys [random-id-seq]} [command]]
-   (when-let [messages (console-respond-command-messages command random-id-seq)
-              events   (mapv #(vector :chat-received-message/add %) messages)]
-     {:dispatch-n events})))
+   (when-let [messages (console-respond-command-messages command random-id-seq)]
+     (let [events (mapv #(vector :chat-received-message/add %) messages)]
+       {:dispatch-n events}))))
